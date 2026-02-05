@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Idiomas {
+  int x = 0;
   static Map<String, Map<String, String>> textos = {
     'Español': {
       "lugares": "Recomendaciones",
