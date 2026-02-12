@@ -1,5 +1,7 @@
 // PantallaPrincipal.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:turisgo/FormularioRegistro.dart';
 import 'dart:math';
 
 // Importación de pantallas y archivos externos
@@ -7,6 +9,7 @@ import 'FormularioRegistro.dart';
 import 'FormularioIniciodesesion.dart';
 import 'PantallaCreadores.dart';
 import 'Idiomas.dart';
+import 'VistaHotel.dart';
 
 class PantallaPrincipal extends StatefulWidget {
   @override
@@ -19,6 +22,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   String _idioma = "Español";
   bool usuarioLogeado = false;
+
+  Timer? _timerInvitado;
+  bool _dialogMostrado = false;
 
   Map<String, bool> _isFlippedMap = {};
   List<String> _historialBusquedas = [];
@@ -34,21 +40,70 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   @override
   void initState() {
     super.initState();
-    _cargarItems(); // Carga los lugares
+    _cargarItems();
     _itemsOriginales.addAll(items);
     _itemsFiltrados = List.from(items);
 
-    // Inicializamos el mapa de giros
     for (var item in items) {
       _isFlippedMap[item["Español"]!["titulo"]!] = false;
     }
+
+    // 👇 INICIA EL TIMER DEL INVITADO
+    _iniciarTemporizadorInvitado();
   }
 
   @override
   void dispose() {
+    _timerInvitado?.cancel(); // 👈 IMPORTANTE
     _scrollController.dispose();
     _destinationController.dispose();
     super.dispose();
+  }
+
+  // ================= TIMER INVITADO =================
+  void _iniciarTemporizadorInvitado() {
+    _timerInvitado?.cancel();
+
+    _timerInvitado = Timer(const Duration(seconds: 5), () {
+      if (!usuarioLogeado && !_dialogMostrado && mounted) {
+        _dialogMostrado = true;
+        _mostrarDialogInvitado();
+      }
+    });
+  }
+
+  void _mostrarDialogInvitado() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text("Modo invitado"),
+          content: const Text(
+            "Has estado navegando por más de 20 minutos.\n\n"
+            "¿Deseas continuar como invitado?",
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF185DDE),
+                shape: const StadiumBorder(),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text(
+                "Continuar como invitado",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _cargarItems() {
@@ -111,6 +166,55 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
           "titulo": "Santa Marta",
           "informacion": "Gateway to Tayrona National Park.",
           "imagen": "assets/Cartagenadeindias.jpg",
+        },
+      },
+      {
+        "Español": {
+          "titulo": "China",
+          "informacion": "Templo.",
+          "imagen": "assets/China.jpg",
+        },
+        "Inglés": {
+          "titulo": "China",
+          "informacion": "Temple.",
+          "imagen": "assets/China.jpg",
+        },
+      },
+      {
+        "Español": {
+          "titulo": "Canada",
+          "informacion": "Laguna.",
+          "imagen": "assets/Canada.jpg",
+        },
+        "Inglés": {
+          "titulo": "Canada",
+          "informacion": "Lagoon.",
+          "imagen": "assets/Canada.jpg",
+        },
+      },
+      {
+        "Español": {
+          "titulo": "Paris",
+          "informacion": "Torre Eiffel.",
+          "imagen": "assets/Paris.jpg",
+        },
+        "Inglés": {
+          "titulo": "Paris",
+          "informacion": "Eiffel Tower.",
+          "imagen": "assets/Paris.jpg",
+        },
+      },
+      {
+        "Español": {
+          "titulo": "Italia",
+          "informacion": "calles principales.",
+          "imagen": "assets/Italia.jpg",
+        },
+        "Inglés": {
+          "titulo": "Italy",
+          "informacion": "Main streets.",
+
+          "imagen": "assets/Italia.jpg",
         },
       },
     ]);
@@ -332,8 +436,188 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     );
   }
 
-  // ========================= TARJETAS =========================
   Widget _cardHotel() {
+    return Card(
+      elevation: 8,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Container(
+        height: 220,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// IMAGEN
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                bottomLeft: Radius.circular(18),
+              ),
+              child: Stack(
+                children: [
+                  Image.asset(
+                    "assets/hotel.jpg",
+                    width: 160,
+                    height: 220,
+                    fit: BoxFit.cover,
+                  ),
+
+                  /// ETIQUETA SUPERIOR
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF185DDE),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        "Recomendado",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            /// INFORMACIÓN
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// NOMBRE
+                    const Text(
+                      "Hotel Las Islas",
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    /// ESTRELLAS
+                    Row(
+                      children: const [
+                        Icon(Icons.star, size: 16, color: Colors.amber),
+                        Icon(Icons.star, size: 16, color: Colors.amber),
+                        Icon(Icons.star, size: 16, color: Colors.amber),
+                        Icon(Icons.star, size: 16, color: Colors.amber),
+                        Icon(Icons.star_half, size: 16, color: Colors.amber),
+                        SizedBox(width: 6),
+                        Text(
+                          "4.5",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    /// UBICACIÓN
+                    Row(
+                      children: const [
+                        Icon(Icons.location_on, size: 15, color: Colors.grey),
+                        SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            "Barú, Cartagena",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    /// DESCRIPCIÓN
+                    const Text(
+                      "Hotel de lujo frente al mar, rodeado de naturaleza y experiencias exclusivas.",
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    const Spacer(),
+
+                    /// PRECIO + BOTÓN
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        /// PRECIO
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              "Desde",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              "\$850.000",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF185DDE),
+                              ),
+                            ),
+                            Text(
+                              "por noche",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        /// BOTÓN VER MÁS
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VistaHotel(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF185DDE),
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                          ),
+                          child: const Text(
+                            "Ver más",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _cardRestaurante() {
     return Card(
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -346,9 +630,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
               bottomLeft: Radius.circular(16),
             ),
             child: Image.asset(
-              "assets/hotel.jpg",
-              width: 160,
-              height: 210,
+              "assets/restaurante.jpg",
+              width: 150,
+              height: 200,
               fit: BoxFit.cover,
             ),
           ),
@@ -358,68 +642,62 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// TAG
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: Colors.orange.shade50,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
-                      "Paquetes",
+                      "Restaurante",
                       style: TextStyle(
-                        color: Color(0xFF185DDE),
+                        color: Colors.orange,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
-                  /// TÍTULO
                   const Text(
-                    "Hotel Las Islas",
+                    "La Cevichería",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-
                   const SizedBox(height: 6),
-
-                  /// UBICACIÓN
-                  Row(
-                    children: const [
+                  Text(
+                    "Mariscos • Cocina Caribe",
+                    style: TextStyle(color: Colors.grey.shade700),
+                  ),
+                  const SizedBox(height: 14),
+                  const Row(
+                    children: [
                       Icon(Icons.location_on, size: 16, color: Colors.grey),
                       SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          "Barú, Cartagena",
+                          "Centro Histórico, Cartagena",
                           style: TextStyle(color: Colors.grey),
                         ),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
 
                   /// DESCRIPCIÓN
                   const Text(
-                    "Hotel de lujo frente al mar, rodeado de naturaleza, ideal para descanso y experiencias exclusivas.",
+                    "Restaurante emblemático conocido por su ceviche fresco y ambiente acogedor en el corazón de Cartagena.",
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
-
                   const SizedBox(height: 12),
-
-                  /// BOTONES
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
                         icon: const Icon(Icons.shopping_cart_outlined),
-                        color: Color(0xFF185DDE),
+                        color: const Color(0xFF185DDE),
                         onPressed: () {
                           // agregar al carrito
                         },
@@ -436,80 +714,6 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                         ),
                       ),
                     ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _cardRestaurante() {
-    return Card(
-      elevation: 6,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(16),
-              bottomLeft: Radius.circular(16),
-            ),
-            child: Image.asset(
-              "assets/restaurante.jpg",
-              width: 150,
-              height: 200,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      "Restaurante",
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "La Cevichería",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    "Mariscos • Cocina Caribe",
-                    style: TextStyle(color: Colors.grey.shade700),
-                  ),
-                  const SizedBox(height: 14),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF185DDE),
-                        shape: StadiumBorder(),
-                      ),
-                      child: Text(
-                        "Ver más",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -611,7 +815,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     );
   }
 
-  // ========================= RESULTADO =========================
+  // RESULTADO
   Widget _cardResultado() {
     if (_seccionActiva.isEmpty) return SizedBox();
 

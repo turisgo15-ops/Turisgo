@@ -32,6 +32,10 @@ dependencies:
 
   supabase_flutter: ^2.3.4
   mailer: ^6.0.0
+  google_maps_flutter: ^2.5.0  
+  intl: ^0.18.0
+
+
 
 
 
@@ -44,6 +48,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+    lottie: ^2.7.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -75,7 +80,10 @@ flutter:
     - assets/kia.jpg
     - assets/restaurante.jpg
     - assets/hotel.jpg
- 
+    - assets/China.jpg
+    - assets/Canada.jpg
+    - assets/Paris.jpg 
+    - assets/Italia.jpg
   
     
   # An image asset can refer to one or more resolution-specific "variants", see
