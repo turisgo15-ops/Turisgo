@@ -1,367 +1,214 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'dart:async';
-import 'dart:math';
 
-class PantallaCreadores extends StatefulWidget {
-  @override
-  _PantallaCreadoresState createState() => _PantallaCreadoresState();
-}
-
-class _PantallaCreadoresState extends State<PantallaCreadores> {
-  final PageController _controller = PageController(viewportFraction: 0.7);
-  int indexActual = 0;
-  Timer? _autoPlayTimer;
-
-  final List<String> imagenes = [
-    'assets/sena.jpg',
-    'assets/vivi.jpeg',
-    'assets/.jpg',
-    'assets/.jpg',
-  ];
-
-  final List<String> titulos = [
-    'Destino único',
-    'Explora sin límites',
-    'Aventuras inolvidables',
-    'Tu pasaporte digital',
-  ];
-
-  final List<String> descripciones = [
-    'Descubre destinos únicos creados para viajeros auténticos.',
-    'Explora, sueña y vive cada experiencia al máximo.',
-    'Viajar nunca fue tan fácil, seguro y emocionante.',
-    'Turis-Go: tu pasaporte a un mundo de aventuras.',
-  ];
-
-  late List<bool> _isFlipped;
-
-  @override
-  void initState() {
-    super.initState();
-    _isFlipped = List.generate(imagenes.length, (_) => false);
-    _startAutoPlay();
-  }
-
-  void _startAutoPlay() {
-    _autoPlayTimer?.cancel();
-    _autoPlayTimer = Timer.periodic(Duration(seconds: 4), (_) {
-      if (!mounted) return;
-      int next = (indexActual + 1) % imagenes.length;
-      _controller.animateToPage(
-        next,
-        duration: Duration(milliseconds: 600),
-        curve: Curves.easeInOut,
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    _autoPlayTimer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  double _safePage() {
-    return (_controller.hasClients && _controller.page != null)
-        ? _controller.page!
-        : indexActual.toDouble();
-  }
+class PantallaCreadores extends StatelessWidget {
+  const PantallaCreadores({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ===== FLECHA DE RETROCESO =====
-              Padding(
-                padding: const EdgeInsets.only(left: 12, top: 12),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.arrow_back_ios,
-                    color: Colors.deepPurple,
-                    size: 28,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
+      body: Stack(
+        // Usamos Stack para que la flecha flote sobre todo
+        children: [
+          // 1. FONDO Y CONTENIDO
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1E1E26), Color(0xFF0F0F12)],
               ),
+            ),
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    const SliverAppBar(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      centerTitle: true,
+                      automaticallyImplyLeading:
+                          false, // Quitamos la flecha automática
+                      title: Text("TURIS-GO STORY",
+                          style: TextStyle(
+                              letterSpacing: 4,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w200,
+                              color: Colors.white70)),
+                    ),
 
-              // ===== SECCIÓN SOBRE NOSOTROS =====
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 25.0,
-                  vertical: 12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sobre nosotros',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
+                    // --- ITINERARIO CENTRADO ---
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 30),
+                        child: Column(
+                          children: [
+                            const Text("NUESTRO CAMINO",
+                                style: TextStyle(
+                                    color: Colors.yellow,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 22,
+                                    letterSpacing: 2)),
+                            const SizedBox(height: 40),
+                            _buildCentralStep(
+                                label: "Inicio",
+                                title: "El Nacimiento",
+                                desc: "La visión de resaltar Purificación.",
+                                isFirst: true),
+                            _buildCentralStep(
+                                label: "1",
+                                title: "Conexión Local",
+                                desc: "Mapeo de rutas y tesoros del Tolima."),
+                            _buildCentralStep(
+                                label: "2",
+                                title: "Arquitectura",
+                                desc: "Desarrollo del ecosistema digital."),
+                            _buildCentralStep(
+                                label: "Fin",
+                                title: "Impacto Real",
+                                desc: "Conectando al mundo con nuestra tierra.",
+                                isLast: true),
+                          ],
+                        ),
                       ),
                     ),
-                    SizedBox(height: 12),
-                    Text(
-                      'En Turis-Go nos apasiona ofrecer experiencias únicas para viajeros de todo el mundo. '
-                      'Nuestro equipo selecciona los mejores destinos, rutas y recomendaciones para que cada aventura sea inolvidable. '
-                      'Con nosotros, descubrirás lugares auténticos, recibirás tips locales y disfrutarás de un servicio seguro y confiable.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[800],
-                        height: 1.5,
-                      ),
+
+                    // --- SECCIÓN EQUIPO CENTRADA ---
+                    SliverList(
+                      delegate: SliverChildListDelegate([
+                        const SizedBox(height: 30),
+                        const Center(
+                          child: Text("EQUIPO MAESTRO",
+                              style: TextStyle(
+                                  color: Colors.cyanAccent,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 3,
+                                  fontSize: 16)),
+                        ),
+                        const SizedBox(height: 30),
+                        _buildCentralCard(
+                            nombre: "Sandra Patricia",
+                            rol: "FOUNDER & CEO",
+                            bio:
+                                "Líder visionaria enfocada en el turismo sostenible."),
+                        _buildCentralCard(
+                            nombre: "Julian Cuellar",
+                            rol: "TECH LEAD",
+                            bio:
+                                "Arquitecto de software y soluciones digitales."),
+                        const SizedBox(height: 100),
+                      ]),
                     ),
                   ],
                 ),
               ),
+            ),
+          ),
 
-              SizedBox(height: 20),
-
-              // ===== CARRUSEL =====
-              Container(
-                height: 320,
-                child: PageView.builder(
-                  controller: _controller,
-                  itemCount: imagenes.length,
-                  onPageChanged: (i) => setState(() => indexActual = i),
-                  itemBuilder: (context, i) {
-                    double page = _safePage();
-                    double diff = (page - i).clamp(-1.0, 1.0);
-                    double scale = (1 - diff.abs() * 0.2).clamp(0.8, 1.0);
-                    double rotY = diff * 0.15;
-                    double parallax = diff * 30;
-
-                    return Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() => _isFlipped[i] = !_isFlipped[i]);
-                          _startAutoPlay();
-                        },
-                        child: AnimatedScale(
-                          scale: scale,
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeOut,
-                          child: Transform(
-                            alignment: Alignment.center,
-                            transform: Matrix4.identity()
-                              ..setEntry(3, 2, 0.001)
-                              ..rotateY(rotY),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                double size = min(
-                                  constraints.maxWidth * 0.7,
-                                  280,
-                                );
-                                return Container(
-                                  width: size,
-                                  height: size,
-                                  margin: EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black26,
-                                        blurRadius: 12,
-                                        offset: Offset(0, 6),
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Stack(
-                                      fit: StackFit.expand,
-                                      children: [
-                                        AnimatedBuilder(
-                                          animation: _controller,
-                                          builder: (context, _) {
-                                            return Transform.translate(
-                                              offset: Offset(parallax, 0),
-                                              child: Image.asset(
-                                                imagenes[i],
-                                                fit: BoxFit.cover,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                        TweenAnimationBuilder<double>(
-                                          tween: Tween<double>(
-                                            begin: 0,
-                                            end: _isFlipped[i] ? 1.0 : 0.0,
-                                          ),
-                                          duration: Duration(milliseconds: 500),
-                                          curve: Curves.easeInOut,
-                                          builder: (context, t, child) {
-                                            final angle = t * pi;
-                                            final isBack = angle > pi / 2;
-                                            return Transform(
-                                              alignment: Alignment.center,
-                                              transform: Matrix4.identity()
-                                                ..rotateY(angle),
-                                              child: isBack
-                                                  ? Transform(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      transform:
-                                                          Matrix4.identity()
-                                                            ..rotateY(pi),
-                                                      child: _cardBack(i),
-                                                    )
-                                                  : _cardFront(i),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+          // 2. LA FLECHA DE REGRESO (FLOTANTE)
+          Positioned(
+            top: 50, // Ajusta según el notch de tu celular
+            left: 20,
+            child: SafeArea(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white
+                        .withOpacity(0.1), // Un fondito sutil para que se vea
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  child: const Icon(Icons.arrow_back_ios_new,
+                      color: Colors.white, size: 20),
                 ),
               ),
-
-              SizedBox(height: 12),
-
-              // Indicadores minimalistas
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(imagenes.length, (i) {
-                  bool active = i == indexActual;
-                  return AnimatedContainer(
-                    duration: Duration(milliseconds: 250),
-                    margin: EdgeInsets.symmetric(horizontal: 4),
-                    width: active ? 24 : 10,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: active ? Colors.deepPurple : Colors.grey[400],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  );
-                }),
-              ),
-              SizedBox(height: 30),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _cardFront(int i) {
-    return Stack(
-      fit: StackFit.expand,
+  // --- WIDGETS DE APOYO (CENTRADOS) ---
+  Widget _buildCentralStep(
+      {required String label,
+      required String title,
+      required String desc,
+      bool isFirst = false,
+      bool isLast = false}) {
+    return Column(
       children: [
-        Positioned.fill(child: Container()),
-        Positioned(
-          bottom: 18,
-          left: 12,
-          right: 12,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                titulos[i],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    Shadow(
-                      blurRadius: 6,
-                      color: Colors.black45,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 6),
-              Text(
-                descripciones[i],
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70, fontSize: 14),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: (label == "Inicio" || label == "Fin")
+                ? Colors.yellow
+                : const Color(0xFF1E1E26),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.yellow, width: 2),
           ),
+          child: Center(
+              child: Text(label,
+                  style: const TextStyle(fontWeight: FontWeight.bold))),
         ),
+        const SizedBox(height: 10),
+        Text(title,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold)),
+        Text(desc,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white60, fontSize: 13)),
+        if (!isLast)
+          Container(
+              width: 2,
+              height: 40,
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              color: Colors.yellow.withOpacity(0.3)),
       ],
     );
   }
 
-  Widget _cardBack(int i) {
+  Widget _buildCentralCard(
+      {required String nombre, required String rol, required String bio}) {
     return Container(
-      color: Colors.black.withOpacity(0.05),
-      padding: EdgeInsets.all(12),
-      child: Center(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-            child: Container(
-              padding: EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    titulos[i],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.deepPurple,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    '${descripciones[i]} Conoce rutas, tips locales y recomendaciones.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 13,
-                      height: 1.4,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: Text('Reservar / Ver más'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+      margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        color: Colors.white.withOpacity(0.03),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          const CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.white10,
+              child: Icon(Icons.person, color: Colors.white24)),
+          const SizedBox(height: 15),
+          Text(rol,
+              style: const TextStyle(
+                  color: Colors.cyanAccent,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold)),
+          Text(nombre,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900)),
+          const SizedBox(height: 10),
+          Text(bio,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white60, fontSize: 13)),
+        ],
       ),
     );
   }

@@ -1,7 +1,5 @@
 // PantallaPrincipal.dart
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:turisgo/FormularioRegistro.dart';
 import 'dart:math';
 
 // Importación de pantallas y archivos externos
@@ -23,9 +21,6 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   String _idioma = "Español";
   bool usuarioLogeado = false;
 
-  Timer? _timerInvitado;
-  bool _dialogMostrado = false;
-
   Map<String, bool> _isFlippedMap = {};
   List<String> _historialBusquedas = [];
   bool _mostrarHistorial = false;
@@ -40,70 +35,21 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   @override
   void initState() {
     super.initState();
-    _cargarItems();
+    _cargarItems(); // Carga los lugares
     _itemsOriginales.addAll(items);
     _itemsFiltrados = List.from(items);
 
+    // Inicializamos el mapa de giros
     for (var item in items) {
       _isFlippedMap[item["Español"]!["titulo"]!] = false;
     }
-
-    // 👇 INICIA EL TIMER DEL INVITADO
-    _iniciarTemporizadorInvitado();
   }
 
   @override
   void dispose() {
-    _timerInvitado?.cancel(); // 👈 IMPORTANTE
     _scrollController.dispose();
     _destinationController.dispose();
     super.dispose();
-  }
-
-  // ================= TIMER INVITADO =================
-  void _iniciarTemporizadorInvitado() {
-    _timerInvitado?.cancel();
-
-    _timerInvitado = Timer(const Duration(seconds: 5), () {
-      if (!usuarioLogeado && !_dialogMostrado && mounted) {
-        _dialogMostrado = true;
-        _mostrarDialogInvitado();
-      }
-    });
-  }
-
-  void _mostrarDialogInvitado() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text("Modo invitado"),
-          content: const Text(
-            "Has estado navegando por más de 20 minutos.\n\n"
-            "¿Deseas continuar como invitado?",
-          ),
-          actions: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF185DDE),
-                shape: const StadiumBorder(),
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text(
-                "Continuar como invitado",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _cargarItems() {
@@ -170,51 +116,50 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       },
       {
         "Español": {
-          "titulo": "China",
-          "informacion": "Templo.",
-          "imagen": "assets/China.jpg",
+          "titulo": "Santa Marta",
+          "informacion": "Puerta de entrada al Parque Tayrona.",
+          "imagen": "assets/Cartagenadeindias.jpg",
         },
         "Inglés": {
-          "titulo": "China",
-          "informacion": "Temple.",
-          "imagen": "assets/China.jpg",
+          "titulo": "Santa Marta",
+          "informacion": "Gateway to Tayrona National Park.",
+          "imagen": "assets/Cartagenadeindias.jpg",
         },
       },
       {
         "Español": {
-          "titulo": "Canada",
-          "informacion": "Laguna.",
+          "titulo": "Santa Marta",
+          "informacion": "Puerta de entrada al Parque Tayrona.",
           "imagen": "assets/Canada.jpg",
         },
         "Inglés": {
-          "titulo": "Canada",
-          "informacion": "Lagoon.",
+          "titulo": "Santa Marta",
+          "informacion": "Gateway to Tayrona National Park.",
           "imagen": "assets/Canada.jpg",
         },
       },
       {
         "Español": {
-          "titulo": "Paris",
-          "informacion": "Torre Eiffel.",
+          "titulo": "Santa Marta",
+          "informacion": "Puerta de entrada al Parque Tayrona.",
           "imagen": "assets/Paris.jpg",
         },
         "Inglés": {
-          "titulo": "Paris",
-          "informacion": "Eiffel Tower.",
+          "titulo": "Santa Marta",
+          "informacion": "Gateway to Tayrona National Park.",
           "imagen": "assets/Paris.jpg",
         },
       },
       {
         "Español": {
-          "titulo": "Italia",
-          "informacion": "calles principales.",
-          "imagen": "assets/Italia.jpg",
+          "titulo": "Santa Marta",
+          "informacion": "Puerta de entrada al Parque Tayrona.",
+          "imagen": "assets/China.jpg",
         },
         "Inglés": {
-          "titulo": "Italy",
-          "informacion": "Main streets.",
-
-          "imagen": "assets/Italia.jpg",
+          "titulo": "Santa Marta",
+          "informacion": "Gateway to Tayrona National Park.",
+          "imagen": "assets/China.jpg",
         },
       },
     ]);
@@ -249,7 +194,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     setState(() {
       _destinationController.clear();
       _itemsFiltrados = List.from(_itemsOriginales);
-      _seccionActiva = "";
+      _seccionActiva = "Todo";
       _lugarSeleccionado = "";
       _mostrarHistorial = false;
       _isFlippedMap.updateAll((key, value) => false);
@@ -436,183 +381,108 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     );
   }
 
-  Widget _cardHotel() {
+  // ========================= TARJETAS =========================
+  Widget _cardHotel(BuildContext context) {
     return Card(
-      elevation: 8,
-      shadowColor: Colors.black26,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: Container(
-        height: 220,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// IMAGEN
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-              ),
-              child: Stack(
-                children: [
-                  Image.asset(
-                    "assets/hotel.jpg",
-                    width: 160,
-                    height: 220,
-                    fit: BoxFit.cover,
-                  ),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Row(
+        children: [
+          // 1. IMAGEN PEQUEÑA Y RECOORTADA
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12),
+              bottomLeft: Radius.circular(12),
+            ),
+            child: Image.asset(
+              "assets/hotel.jpg",
+              width: 120, // Tamaño controlado
+              height: 150, // Altura fija para que no crezca demasiado
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                  width: 120, height: 150, color: Colors.grey.shade200),
+            ),
+          ),
 
-                  /// ETIQUETA SUPERIOR
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF185DDE),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        "Recomendado",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+          // 2. CONTENIDO AL LADO
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Nombre y Puntuación
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          "Hotel OR Suite",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF003580),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text("7.9",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+
+                  const Text("Riomar, Barranquilla",
+                      style: TextStyle(color: Colors.grey, fontSize: 13)),
+
+                  const SizedBox(height: 8),
+
+                  // Precio destacado
+                  const Text(
+                    "COP 884.400",
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF003580)),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Botón simple y pequeño
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const VistaHotel()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0071C2),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        minimumSize: const Size(100, 36),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6)),
+                      ),
+                      child: const Text("Ver más",
+                          style: TextStyle(color: Colors.white, fontSize: 13)),
                     ),
                   ),
                 ],
               ),
             ),
-
-            /// INFORMACIÓN
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// NOMBRE
-                    const Text(
-                      "Hotel Las Islas",
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    /// ESTRELLAS
-                    Row(
-                      children: const [
-                        Icon(Icons.star, size: 16, color: Colors.amber),
-                        Icon(Icons.star, size: 16, color: Colors.amber),
-                        Icon(Icons.star, size: 16, color: Colors.amber),
-                        Icon(Icons.star, size: 16, color: Colors.amber),
-                        Icon(Icons.star_half, size: 16, color: Colors.amber),
-                        SizedBox(width: 6),
-                        Text(
-                          "4.5",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    /// UBICACIÓN
-                    Row(
-                      children: const [
-                        Icon(Icons.location_on, size: 15, color: Colors.grey),
-                        SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            "Barú, Cartagena",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    /// DESCRIPCIÓN
-                    const Text(
-                      "Hotel de lujo frente al mar, rodeado de naturaleza y experiencias exclusivas.",
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    const Spacer(),
-
-                    /// PRECIO + BOTÓN
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        /// PRECIO
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              "Desde",
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(
-                              "\$850.000",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF185DDE),
-                              ),
-                            ),
-                            Text(
-                              "por noche",
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        /// BOTÓN VER MÁS
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VistaHotel(),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF185DDE),
-                            shape: const StadiumBorder(),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                          ),
-                          child: const Text(
-                            "Ver más",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -625,7 +495,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.only(
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(16),
               bottomLeft: Radius.circular(16),
             ),
@@ -634,24 +504,23 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
               width: 150,
               height: 200,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(width: 150, height: 200, color: Colors.grey),
             ),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.orange.shade50,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
+                    child: Text(
                       "Restaurante",
                       style: TextStyle(
                         color: Colors.orange,
@@ -660,60 +529,36 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     "La Cevichería",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Text(
                     "Mariscos • Cocina Caribe",
                     style: TextStyle(color: Colors.grey.shade700),
                   ),
                   const SizedBox(height: 14),
-                  const Row(
-                    children: [
-                      Icon(Icons.location_on, size: 16, color: Colors.grey),
-                      SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          "Centro Histórico, Cartagena",
-                          style: TextStyle(color: Colors.grey),
-                        ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // NAVEGACIÓN CORREGIDA
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => VistaHotel()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF185DDE),
+                        shape: StadiumBorder(),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  /// DESCRIPCIÓN
-                  const Text(
-                    "Restaurante emblemático conocido por su ceviche fresco y ambiente acogedor en el corazón de Cartagena.",
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.shopping_cart_outlined),
-                        color: const Color(0xFF185DDE),
-                        onPressed: () {
-                          // agregar al carrito
-                        },
+                      child: Text(
+                        "Ver más",
+                        style: TextStyle(color: Colors.white),
                       ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF185DDE),
-                          shape: const StadiumBorder(),
-                        ),
-                        child: const Text(
-                          "Ver más",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -730,110 +575,109 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
           children: [
-            Column(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.asset(
-                  "assets/kia.jpg",
-                  width: 140,
-                  height: 90,
-                  fit: BoxFit.contain,
-                ),
-                SizedBox(height: 8),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    "Cancelación gratis",
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                Column(
+                  children: [
+                    Image.asset(
+                      "assets/kia.jpg",
+                      width: 120,
+                      height: 80,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Icon(Icons.directions_car, size: 50),
                     ),
-                  ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        "Cancelación gratis",
+                        style: TextStyle(
+                            color: Colors.green,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Kia Picanto",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "Auto económico o similar",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    children: const [
-                      Text("👤 5 personas"),
-                      Text("🧳 2 maletas pequeñas"),
-                      Text("❄ Aire acondicionado"),
-                      Text("⚙ Manual"),
-                      Text("🛣 Ilimitado"),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Kia Picanto",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text("Auto económico",
+                          style: TextStyle(color: Colors.grey)),
+                      SizedBox(height: 12),
+                      Text("👤 5 personas  ❄ A/C",
+                          style: TextStyle(fontSize: 12)),
                     ],
                   ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text("Precio por día", style: TextStyle(color: Colors.grey)),
-                Text(
-                  "\$211.016",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF00C08B),
-                    shape: StadiumBorder(),
-                  ),
-                  child: Text(
-                    "Elegir fechas",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text("Día",
+                        style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text("\$211.016",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                  ],
                 ),
               ],
             ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => VistaHotel()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF00C08B),
+                  shape: StadiumBorder(),
+                ),
+                child: Text("Elegir fechas",
+                    style: TextStyle(color: Colors.white)),
+              ),
+            )
           ],
         ),
       ),
     );
   }
 
-  // RESULTADO
+  // ========================= RESULTADO =========================
   Widget _cardResultado() {
     if (_seccionActiva.isEmpty) return SizedBox();
 
     if (_seccionActiva == "Todo") {
       return Column(
         children: [
-          _cardHotel(),
+          _cardHotel(context),
           SizedBox(height: 16),
           _cardRestaurante(),
           SizedBox(height: 16),
           _cardTransporte(),
+          SizedBox(height: 20),
         ],
       );
     }
 
     switch (_seccionActiva) {
       case "Hoteles":
-        return _cardHotel();
+        return _cardHotel(context);
       case "Restaurantes":
         return _cardRestaurante();
       case "Transportes":
@@ -868,10 +712,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
           DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _idioma,
-              items: [
-                "Español",
-                "Inglés",
-              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              items: ["Español", "Inglés"]
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
               onChanged: (v) => setState(() => _idioma = v!),
               dropdownColor: Colors.white,
             ),
@@ -948,7 +791,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
               ),
             ),
             SizedBox(height: 16),
-            _cardResultado(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _cardResultado(),
+            ),
           ],
         ),
       ),

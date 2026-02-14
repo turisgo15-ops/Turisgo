@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class VistaHotel extends StatefulWidget {
   const VistaHotel({super.key});
@@ -9,410 +8,484 @@ class VistaHotel extends StatefulWidget {
 }
 
 class _VistaHotelState extends State<VistaHotel> {
-  final PageController _pageController = PageController(viewportFraction: 0.92);
+  // --- CONFIGURACIÓN Y ESTADO ---
+  final double precioNoche = 29.99;
+  DateTime? fechaInicio;
+  DateTime? fechaFin;
 
-  int paginaActual = 0;
-  int habitaciones = 1;
-  int personas = 2;
-  int precioNoche = 850000;
+  int numHabitaciones = 1;
+  int numPersonas = 1;
 
-  int habitacionesDisponibles = 2;
-  int capacidadPorHabitacion = 2;
-
-  DateTimeRange? fechas;
-
-  final List<String> imagenes = [
-    "assets/hotel.jpg",
-    "assets/hotel2.jpg",
-    "assets/hotel3.jpg",
+  final List<String> misImagenes = [
+    'assets/hotel.jpg',
+    'assets/hotel2.jpg',
+    'assets/hotel3.jpg',
   ];
 
-  int get noches => fechas == null ? 1 : fechas!.duration.inDays;
+  // --- LÓGICA DE CÁLCULOS ---
 
-  int get total => noches * precioNoche * habitaciones;
+  // Calcula la diferencia de días entre las fechas seleccionadas
+  int get cantidadNoches => (fechaInicio != null && fechaFin != null)
+      ? fechaFin!.difference(fechaInicio!).inDays
+      : 0;
 
-  int get maxPersonas => habitaciones * capacidadPorHabitacion;
+  // CÁLCULO DINÁMICO: Se dispara cada vez que cambia el estado (setState)
+  double get totalReserva =>
+      cantidadNoches > 0 ? (cantidadNoches * precioNoche * numHabitaciones) : 0;
+
+  void _onDaySelected(DateTime dia) {
+    setState(() {
+      if (fechaInicio == null || (fechaInicio != null && fechaFin != null)) {
+        fechaInicio = dia;
+        fechaFin = null;
+      } else if (dia.isAfter(fechaInicio!)) {
+        fechaFin = dia;
+      } else {
+        fechaInicio = dia;
+        fechaFin = null;
+      }
+    });
+  }
+
+  // --- COMPONENTES DE INTERFAZ ---
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F8),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth > 900) {
-            // 💻 MODO ESCRITORIO
-            return Row(
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(30),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // PARTE IZQUIERDA: Galería e Información
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(Icons.arrow_back_ios,
+                            color: Color(0xFF00332D), size: 28),
+                        onPressed: () => Navigator.maybePop(context),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "Villa Alhambra",
+                        style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF00332D)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+                  _buildGaleriaGrid(),
+                  const SizedBox(height: 30),
+                  const Row(
+                    children: [
+                      _TabItem(text: "Descripción general", isActive: true),
+                      _TabItem(text: "Detalles"),
+                      _TabItem(text: "Opiniones"),
+                    ],
+                  ),
+                  const Divider(),
+                ],
+              ),
+            ),
+            const SizedBox(width: 40),
+            // PARTE DERECHA: Panel de Reserva
+            SizedBox(
+              width: 380,
+              child: _buildPanelReserva(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPanelReserva() {
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey[200]!),
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black12, blurRadius: 20, offset: Offset(0, 10))
+          ]),
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            decoration: const BoxDecoration(
+                color: Color(0xFFFF7043),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(19))),
+            child: const Center(
+              child: Text("DISPONIBILIDAD",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      fontSize: 16)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(25),
+            child: Column(
               children: [
-                Expanded(
-                  flex: 5,
-                  child: SingleChildScrollView(
-                    child: Column(
+                _buildCustomCalendar(),
+                const Divider(height: 40),
+
+                // Selector de Habitaciones (Afecta al precio total)
+                _buildSelector(
+                    label: "Habitaciones",
+                    valor: numHabitaciones,
+                    onChanged: (nuevoValor) {
+                      setState(() {
+                        numHabitaciones = nuevoValor;
+                      });
+                    }),
+                const SizedBox(height: 15),
+
+                // Selector de Personas
+                _buildSelector(
+                    label: "Personas",
+                    valor: numPersonas,
+                    onChanged: (nuevoValor) {
+                      setState(() {
+                        numPersonas = nuevoValor;
+                      });
+                    }),
+                const SizedBox(height: 25),
+
+                // Mostrar el precio solo si hay noches seleccionadas
+                if (cantidadNoches > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildCarousel(),
-                        const SizedBox(height: 30),
-                        Padding(
-                          padding: const EdgeInsets.all(30),
-                          child: _buildReservaCard(),
-                        ),
+                        const Text("Precio Final:",
+                            style: TextStyle(fontSize: 18, color: Colors.grey)),
+                        Text("${totalReserva.toStringAsFixed(2)}€",
+                            style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFFF7043))),
                       ],
                     ),
                   ),
-                ),
-                Expanded(flex: 4, child: _buildCalendarioDecorado()),
-              ],
-            );
-          } else {
-            // 📱 MODO MÓVIL
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildCarousel(),
-                  const SizedBox(height: 30),
-                  Padding(
-                    padding: const EdgeInsets.all(25),
-                    child: _buildReservaCard(),
-                  ),
-                  const SizedBox(height: 30),
-                  _buildCalendarioDecorado(),
-                ],
-              ),
-            );
-          }
-        },
-      ),
-    );
-  }
 
-  // ======================== CARRUSEL ========================
-
-  Widget _buildCarousel() {
-    return SizedBox(
-      height: 340,
-      child: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            itemCount: imagenes.length,
-            onPageChanged: (index) => setState(() => paginaActual = index),
-            itemBuilder: (_, index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(25),
-                  child: Image.asset(imagenes[index], fit: BoxFit.cover),
-                ),
-              );
-            },
-          ),
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                imagenes.length,
-                (index) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: paginaActual == index ? 24 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: paginaActual == index
-                        ? Colors.white
-                        : Colors.white54,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ======================== CARD RESERVA ========================
-
-  Widget _buildReservaCard() {
-    return Container(
-      padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 25,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "\$${NumberFormat("#,###").format(precioNoche)}",
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF185DDE),
-                    ),
-                  ),
-                  const Text("por noche", style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-              const Icon(Icons.king_bed, size: 30, color: Color(0xFF185DDE)),
-            ],
-          ),
-
-          const SizedBox(height: 25),
-
-          const Text(
-            "Habitaciones",
-            style: TextStyle(fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 10),
-
-          _buildCounter(
-            titulo: "Disponibles: $habitacionesDisponibles",
-            valor: habitaciones,
-            onAdd: () {
-              if (habitaciones < habitacionesDisponibles) {
-                setState(() => habitaciones++);
-              }
-            },
-            onRemove: () {
-              if (habitaciones > 1) {
-                setState(() {
-                  habitaciones--;
-                  if (personas > maxPersonas) {
-                    personas = maxPersonas;
-                  }
-                });
-              }
-            },
-          ),
-
-          const SizedBox(height: 20),
-
-          const Text("Personas", style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 10),
-
-          _buildCounter(
-            titulo: "Máx: $maxPersonas",
-            valor: personas,
-            onAdd: () {
-              if (personas < maxPersonas) {
-                setState(() => personas++);
-              }
-            },
-            onRemove: () {
-              if (personas > 1) {
-                setState(() => personas--);
-              }
-            },
-          ),
-
-          const SizedBox(height: 25),
-          const Divider(),
-          const SizedBox(height: 15),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("Total", style: TextStyle(fontSize: 18)),
-              Text(
-                "\$${NumberFormat("#,###").format(total)}",
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 25),
-
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF185DDE),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
-              child: const Text(
-                "Reservar ahora",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ======================== CALENDARIO DECORADO ========================
-
-  Widget _buildCalendarioDecorado() {
-    return Center(
-      child: Container(
-        width: 380,
-        margin: const EdgeInsets.all(30),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 20,
-              offset: Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // 🌿 Hoja superior
-            Positioned(
-              top: -10,
-              left: -10,
-              child: Icon(
-                Icons.local_florist,
-                size: 50,
-                color: Colors.green.withOpacity(0.07),
-              ),
-            ),
-
-            // 🌸 Hoja inferior
-            Positioned(
-              bottom: -10,
-              right: -10,
-              child: Icon(
-                Icons.eco,
-                size: 60,
-                color: Colors.pink.withOpacity(0.07),
-              ),
-            ),
-
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Selecciona tu fecha",
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 15),
-
-                // 🔥 FORZAR ESPAÑOL SOLO AQUÍ
-                Localizations.override(
-                  context: context,
-                  locale: const Locale('es'),
-                  child: Builder(
-                    builder: (context) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          colorScheme: const ColorScheme.light(
-                            primary: Color(0xFF185DDE),
-                          ),
-                        ),
-                        child: SizedBox(
-                          height: 300, // 🔥 Más pequeño real
-                          child: CalendarDatePicker(
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime(2030),
-                            onDateChanged: (date) {
-                              setState(() {
-                                fechas = DateTimeRange(
-                                  start: date,
-                                  end: date.add(const Duration(days: 1)),
-                                );
-                              });
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 15),
-
-                if (fechas != null)
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF185DDE).withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      DateFormat('dd MMMM yyyy', 'es').format(fechas!.start),
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                  ),
+                ElevatedButton(
+                    onPressed: cantidadNoches > 0 ? () {} : null,
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF7043),
+                        disabledBackgroundColor: Colors.grey[300],
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        minimumSize: const Size(double.infinity, 55)),
+                    child: const Text("RESERVAR AHORA",
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white))),
               ],
             ),
-          ],
-        ),
+          )
+        ],
       ),
     );
   }
 
-  Widget _buildCounter({
-    required String titulo,
-    required int valor,
-    required VoidCallback onAdd,
-    required VoidCallback onRemove,
-  }) {
+  // --- WIDGETS AUXILIARES ---
+
+  Widget _buildSelector(
+      {required String label,
+      required int valor,
+      required Function(int) onChanged}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(titulo),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.blueGrey)),
         Row(
           children: [
-            _circleButton(Icons.remove, onRemove),
+            _btnContador(Icons.remove, () {
+              if (valor > 1) onChanged(valor - 1);
+            }),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Text(
-                "$valor",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child: Text("$valor",
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
             ),
-            _circleButton(Icons.add, onAdd),
+            _btnContador(Icons.add, () {
+              onChanged(valor + 1);
+            }),
           ],
         ),
       ],
     );
   }
 
-  Widget _circleButton(IconData icon, VoidCallback onTap) {
+  Widget _btnContador(IconData icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(50),
+      borderRadius: BorderRadius.circular(5),
       child: Container(
-        width: 38,
-        height: 38,
+        padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(50),
-          border: Border.all(color: const Color(0xFF185DDE)),
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(5),
         ),
-        child: Icon(icon, size: 18, color: const Color(0xFF185DDE)),
+        child: Icon(icon, size: 18, color: const Color(0xFF00332D)),
       ),
     );
+  }
+
+  Widget _buildGaleriaGrid() {
+    return SizedBox(
+      height: 400,
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: GestureDetector(
+              onTap: () => _mostrarVisor(context, 0),
+              child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.asset(misImagenes[0], fit: BoxFit.cover)),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            flex: 1,
+            child: Column(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _mostrarVisor(context, 1),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Image.asset(misImagenes[1],
+                            fit: BoxFit.cover, width: double.infinity)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _mostrarVisor(context, 2),
+                    child: Stack(fit: StackFit.expand, children: [
+                      ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child:
+                              Image.asset(misImagenes[2], fit: BoxFit.cover)),
+                      Container(
+                        decoration: BoxDecoration(
+                            color: Colors.black38,
+                            borderRadius: BorderRadius.circular(15)),
+                        child: const Center(
+                          child: Text("+4",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24)),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomCalendar() {
+    return Column(
+      children: [
+        const Text("FEBRERO 2026",
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF00332D),
+                fontSize: 16)),
+        const SizedBox(height: 15),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 35,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7),
+          itemBuilder: (context, i) {
+            int diaNum = i - 5;
+            if (diaNum < 1 || diaNum > 28) return const SizedBox();
+            DateTime fechaActual = DateTime(2026, 2, diaNum);
+            bool esInicio = fechaInicio != null &&
+                fechaActual.isAtSameMomentAs(fechaInicio!);
+            bool esFin =
+                fechaFin != null && fechaActual.isAtSameMomentAs(fechaFin!);
+            bool enRango = fechaInicio != null &&
+                fechaFin != null &&
+                fechaActual.isAfter(fechaInicio!) &&
+                fechaActual.isBefore(fechaFin!);
+
+            return GestureDetector(
+              onTap: () => _onDaySelected(fechaActual),
+              child: Container(
+                margin: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: enRango
+                      ? const Color(0xFFFFE0B2)
+                      : (esInicio || esFin
+                          ? const Color(0xFFFF7043)
+                          : Colors.transparent),
+                  shape:
+                      esInicio || esFin ? BoxShape.circle : BoxShape.rectangle,
+                  borderRadius:
+                      !esInicio && !esFin ? BorderRadius.circular(8) : null,
+                ),
+                child: Center(
+                    child: Text("$diaNum",
+                        style: TextStyle(
+                            fontWeight: (esInicio || esFin)
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: (esInicio || esFin)
+                                ? Colors.white
+                                : Colors.black))),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void _mostrarVisor(BuildContext context, int inicial) {
+    PageController controller = PageController(initialPage: inicial);
+    showDialog(
+      context: context,
+      useSafeArea: false,
+      builder: (context) => Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        body: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  PageView.builder(
+                    controller: controller,
+                    itemCount: misImagenes.length,
+                    itemBuilder: (context, index) => InteractiveViewer(
+                      child:
+                          Image.asset(misImagenes[index], fit: BoxFit.contain),
+                    ),
+                  ),
+                  Positioned(
+                      left: 20,
+                      child: _btnNavegacionVisor(
+                          Icons.chevron_left,
+                          () => controller.previousPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut))),
+                  Positioned(
+                      right: 20,
+                      child: _btnNavegacionVisor(
+                          Icons.chevron_right,
+                          () => controller.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut))),
+                  Positioned(
+                      top: 40,
+                      right: 20,
+                      child: IconButton(
+                          icon: const Icon(Icons.close, size: 35),
+                          onPressed: () => Navigator.pop(context))),
+                ],
+              ),
+            ),
+            Container(
+              width: 350,
+              color: Colors.white,
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Información",
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF00332D))),
+                  const SizedBox(height: 50),
+                  const Text("Descripción del lugar:",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 15),
+                  const Text(
+                      "Detalle de la fotografía seleccionada en el visor.",
+                      style: TextStyle(color: Colors.grey, height: 1.6)),
+                  const Spacer(),
+                  OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 55),
+                          side: const BorderSide(color: Color(0xFF00332D))),
+                      child: const Text("Volver al álbum",
+                          style: TextStyle(color: Color(0xFF00332D)))),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _btnNavegacionVisor(IconData icon, VoidCallback onTap) {
+    return CircleAvatar(
+        backgroundColor: Colors.black.withOpacity(0.5),
+        radius: 28,
+        child: IconButton(
+            icon: Icon(icon, color: Colors.white, size: 32), onPressed: onTap));
+  }
+}
+
+class _TabItem extends StatelessWidget {
+  final String text;
+  final bool isActive;
+  const _TabItem({required this.text, this.isActive = false});
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.only(right: 25, bottom: 12),
+        child: Column(
+          children: [
+            Text(text,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                    color: isActive ? const Color(0xFF004D40) : Colors.grey)),
+            if (isActive)
+              Container(
+                  height: 2,
+                  width: 40,
+                  color: const Color(0xFF004D40),
+                  margin: const EdgeInsets.only(top: 4)),
+          ],
+        ));
   }
 }

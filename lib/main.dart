@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:turisgo/PantallaPrincipal.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,8 +8,7 @@ void main() async {
 
   await Supabase.initialize(
     url: 'https://mqkiesklveagjqdbdmuy.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xa2llc2tsdmVhZ2pxZGJkbXV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1OTI0MDEsImV4cCI6MjA4MDE2ODQwMX0.zq8FmPvcsujFhMpe5N10USYBcr-4hPBjH8rpCbLH1EE',
+    anonKey: 'TU_ANON_KEY',
   );
 
   runApp(Principal());
@@ -19,8 +19,20 @@ class Principal extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Formulario",
-      home: PantallaPrincipal(),
       debugShowCheckedModeBanner: false,
+
+      // 👇 IMPORTANTE
+      locale: const Locale('es'),
+
+      supportedLocales: const [Locale('es')],
+
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
+      home: PantallaPrincipal(),
     );
   }
 }

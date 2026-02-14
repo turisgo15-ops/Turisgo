@@ -1,41 +1,48 @@
-import 'package:flutter/material.dart';
-
 class Idiomas {
   static Map<String, Map<String, String>> textos = {
-    'Español': {
-      "lugares": "Recomendaciones",
-      "registro": "Registro",
-      "iniciar": "Iniciar sesión",
-      "invitado": "Continuar como invitado",
+    "Español": {
+      "registro": "Registrarse",
+      "iniciar": "Iniciar Sesión",
       "buscar": "Buscar",
-
-      // Huéspedes
-      "huespedes_titulo": "Seleccionar huéspedes y habitaciones",
-      "adultos": "Adultos",
-      "ninos": "Niños",
-      "habitaciones": "Habitaciones",
-
-      // Buscador
       "a_donde_vas": "¿A dónde vas?",
-      "fecha_rango": "Fecha de entrada — Fecha de salida",
+      "lugares": "Lugares Destacados",
+      "todo": "Todo",
+      "hoteles": "Hoteles",
+      "restaurantes": "Restaurantes",
+      "transportes": "Transportes",
+      "modo_invitado": "Modo invitado",
+      "msj_invitado":
+          "Has estado navegando por más de 5 segundos.\n¿Deseas continuar como invitado?",
+      "btn_continuar": "Continuar como invitado",
+      "recomendado": "Recomendado",
+      "desde": "Desde",
+      "por_noche": "por noche",
+      "ver_mas": "Ver más",
+      "por_dia": "Precio por día",
+      "elegir_fechas": "Elegir fechas",
+      "cancelacion_gratis": "Cancelación gratis",
     },
-
-    'Inglés': {
-      "lugares": "Recomendacions",
+    "Inglés": {
       "registro": "Sign Up",
-      "iniciar": "Log In",
-      "invitado": "Continue as guest",
+      "iniciar": "Login",
       "buscar": "Search",
-
-      // Guests
-      "huespedes_titulo": "Select guests and rooms",
-      "adultos": "Adults",
-      "ninos": "Children",
-      "habitaciones": "Rooms",
-
-      // Search
       "a_donde_vas": "Where are you going?",
-      "fecha_rango": "Check-in — Check-out",
-    },
+      "lugares": "Featured Places",
+      "todo": "All",
+      "hoteles": "Hotels",
+      "restaurantes": "Restaurants",
+      "transportes": "Transport",
+      "modo_invitado": "Guest Mode",
+      "msj_invitado":
+          "You have been browsing for more than 5 seconds.\nDo you want to continue as a guest?",
+      "btn_continuar": "Continue as guest",
+      "recomendado": "Recommended",
+      "desde": "From",
+      "por_noche": "per night",
+      "ver_mas": "See more",
+      "por_dia": "Price per day",
+      "elegir_fechas": "Select dates",
+      "cancelacion_gratis": "Free cancellation",
+    }
   };
 }
