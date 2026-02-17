@@ -7,6 +7,7 @@ import 'FormularioRegistro.dart';
 import 'FormularioIniciodesesion.dart';
 import 'PantallaCreadores.dart';
 import 'Idiomas.dart';
+import 'VistaHotel.dart';
 
 class PantallaPrincipal extends StatefulWidget {
   @override
@@ -113,6 +114,54 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
           "imagen": "assets/Cartagenadeindias.jpg",
         },
       },
+      {
+        "Español": {
+          "titulo": "Santa Marta",
+          "informacion": "Puerta de entrada al Parque Tayrona.",
+          "imagen": "assets/Cartagenadeindias.jpg",
+        },
+        "Inglés": {
+          "titulo": "Santa Marta",
+          "informacion": "Gateway to Tayrona National Park.",
+          "imagen": "assets/Cartagenadeindias.jpg",
+        },
+      },
+      {
+        "Español": {
+          "titulo": "Santa Marta",
+          "informacion": "Puerta de entrada al Parque Tayrona.",
+          "imagen": "assets/Canada.jpg",
+        },
+        "Inglés": {
+          "titulo": "Santa Marta",
+          "informacion": "Gateway to Tayrona National Park.",
+          "imagen": "assets/Canada.jpg",
+        },
+      },
+      {
+        "Español": {
+          "titulo": "Santa Marta",
+          "informacion": "Puerta de entrada al Parque Tayrona.",
+          "imagen": "assets/Paris.jpg",
+        },
+        "Inglés": {
+          "titulo": "Santa Marta",
+          "informacion": "Gateway to Tayrona National Park.",
+          "imagen": "assets/Paris.jpg",
+        },
+      },
+      {
+        "Español": {
+          "titulo": "Santa Marta",
+          "informacion": "Puerta de entrada al Parque Tayrona.",
+          "imagen": "assets/China.jpg",
+        },
+        "Inglés": {
+          "titulo": "Santa Marta",
+          "informacion": "Gateway to Tayrona National Park.",
+          "imagen": "assets/China.jpg",
+        },
+      },
     ]);
   }
 
@@ -145,7 +194,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     setState(() {
       _destinationController.clear();
       _itemsFiltrados = List.from(_itemsOriginales);
-      _seccionActiva = "";
+      _seccionActiva = "Todo";
       _lugarSeleccionado = "";
       _mostrarHistorial = false;
       _isFlippedMap.updateAll((key, value) => false);
@@ -333,109 +382,101 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   }
 
   // ========================= TARJETAS =========================
-  Widget _cardHotel() {
+  Widget _cardHotel(BuildContext context) {
     return Card(
-      elevation: 6,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 1. IMAGEN PEQUEÑA Y RECOORTADA
           ClipRRect(
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              bottomLeft: Radius.circular(16),
+              topLeft: Radius.circular(12),
+              bottomLeft: Radius.circular(12),
             ),
             child: Image.asset(
               "assets/hotel.jpg",
-              width: 160,
-              height: 210,
+              width: 120, // Tamaño controlado
+              height: 150, // Altura fija para que no crezca demasiado
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                  width: 120, height: 150, color: Colors.grey.shade200),
             ),
           ),
+
+          // 2. CONTENIDO AL LADO
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  /// TAG
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      "Paquetes",
-                      style: TextStyle(
-                        color: Color(0xFF185DDE),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  /// TÍTULO
-                  const Text(
-                    "Hotel Las Islas",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  /// UBICACIÓN
-                  Row(
-                    children: const [
-                      Icon(Icons.location_on, size: 16, color: Colors.grey),
-                      SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          "Barú, Cartagena",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  /// DESCRIPCIÓN
-                  const Text(
-                    "Hotel de lujo frente al mar, rodeado de naturaleza, ideal para descanso y experiencias exclusivas.",
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  /// BOTONES
+                  // Nombre y Puntuación
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.shopping_cart_outlined),
-                        color: Color(0xFF185DDE),
-                        onPressed: () {
-                          // agregar al carrito
-                        },
+                      const Expanded(
+                        child: Text(
+                          "Hotel OR Suite",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF185DDE),
-                          shape: const StadiumBorder(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF003580),
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          "Ver más",
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        child: const Text("7.9",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
+                  ),
+
+                  const Text("Riomar, Barranquilla",
+                      style: TextStyle(color: Colors.grey, fontSize: 13)),
+
+                  const SizedBox(height: 8),
+
+                  // Precio destacado
+                  const Text(
+                    "COP 884.400",
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF003580)),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Botón simple y pequeño
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const VistaHotel()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0071C2),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        minimumSize: const Size(100, 36),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6)),
+                      ),
+                      child: const Text("Ver más",
+                          style: TextStyle(color: Colors.white, fontSize: 13)),
+                    ),
                   ),
                 ],
               ),
@@ -463,6 +504,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
               width: 150,
               height: 200,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(width: 150, height: 200, color: Colors.grey),
             ),
           ),
           Expanded(
@@ -500,7 +543,13 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        // NAVEGACIÓN CORREGIDA
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => VistaHotel()),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF185DDE),
                         shape: StadiumBorder(),
@@ -526,85 +575,83 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
           children: [
-            Column(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.asset(
-                  "assets/kia.jpg",
-                  width: 140,
-                  height: 90,
-                  fit: BoxFit.contain,
-                ),
-                SizedBox(height: 8),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    "Cancelación gratis",
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                Column(
+                  children: [
+                    Image.asset(
+                      "assets/kia.jpg",
+                      width: 120,
+                      height: 80,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Icon(Icons.directions_car, size: 50),
                     ),
-                  ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        "Cancelación gratis",
+                        style: TextStyle(
+                            color: Colors.green,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Kia Picanto",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "Auto económico o similar",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    children: const [
-                      Text("👤 5 personas"),
-                      Text("🧳 2 maletas pequeñas"),
-                      Text("❄ Aire acondicionado"),
-                      Text("⚙ Manual"),
-                      Text("🛣 Ilimitado"),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Kia Picanto",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text("Auto económico",
+                          style: TextStyle(color: Colors.grey)),
+                      SizedBox(height: 12),
+                      Text("👤 5 personas  ❄ A/C",
+                          style: TextStyle(fontSize: 12)),
                     ],
                   ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text("Precio por día", style: TextStyle(color: Colors.grey)),
-                Text(
-                  "\$211.016",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF00C08B),
-                    shape: StadiumBorder(),
-                  ),
-                  child: Text(
-                    "Elegir fechas",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text("Día",
+                        style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text("\$211.016",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                  ],
                 ),
               ],
             ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => VistaHotel()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF00C08B),
+                  shape: StadiumBorder(),
+                ),
+                child: Text("Elegir fechas",
+                    style: TextStyle(color: Colors.white)),
+              ),
+            )
           ],
         ),
       ),
@@ -618,18 +665,19 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     if (_seccionActiva == "Todo") {
       return Column(
         children: [
-          _cardHotel(),
+          _cardHotel(context),
           SizedBox(height: 16),
           _cardRestaurante(),
           SizedBox(height: 16),
           _cardTransporte(),
+          SizedBox(height: 20),
         ],
       );
     }
 
     switch (_seccionActiva) {
       case "Hoteles":
-        return _cardHotel();
+        return _cardHotel(context);
       case "Restaurantes":
         return _cardRestaurante();
       case "Transportes":
@@ -664,10 +712,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
           DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _idioma,
-              items: [
-                "Español",
-                "Inglés",
-              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              items: ["Español", "Inglés"]
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
               onChanged: (v) => setState(() => _idioma = v!),
               dropdownColor: Colors.white,
             ),
@@ -744,7 +791,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
               ),
             ),
             SizedBox(height: 16),
-            _cardResultado(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _cardResultado(),
+            ),
           ],
         ),
       ),
